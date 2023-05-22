@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Draw Together</title>
+    <style>
+      #canvas {
+        border: 1px solid red;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas" width="500" height="500"></canvas>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      let drawing = false;
+
+      const socket = io();
+
+      socket.on("draw", (data) => {
+        // evento de escuta no cliente
+        const { x, y } = data;
+        ctx.fillRect(x, y, 5, 5); // Tamanho do ponto do desenho
+      });
+
+      canvas.addEventListener("mousedown", () => {
+        drawing = true;
+      });
+
+      canvas.addEventListener("mousemove", (event) => {
+        if (!drawing) return;
+
+        const { offsetX, offsetY } = event;
+        ctx.fillRect(offsetX, offsetY, 5, 5); // Tamanho do ponto do desenho
+        socket.emit("draw", { x: offsetX, y: offsetY });
+      });
+
+      canvas.addEventListener("mouseup", () => {
+        drawing = false;
+      });
+    </script>
+  </body>
+</html>
