@@ -1,46 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Draw Together</title>
-    <style>
-      #canvas {
-        border: 1px solid red;
-      }
-    </style>
-  </head>
-  <body>
-    <canvas id="canvas" width="500" height="500"></canvas>
+<head>
+  <meta charset="UTF-8">
+  <title>Draw Together</title>
+  <style>
+    #canvas {
+      border: 1px solid #000;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="500" height="500"></canvas>
+  <button id="clear-button">Limpar Tela</button> <!-- Novo botão -->
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      const canvas = document.getElementById("canvas");
-      const ctx = canvas.getContext("2d");
-      let drawing = false;
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
 
-      const socket = io();
+    const socket = io();
 
-      socket.on("draw", (data) => {
-        // evento de escuta no cliente
-        const { x, y } = data;
-        ctx.fillRect(x, y, 5, 5); // Tamanho do ponto do desenho
-      });
+    socket.on('draw', (data) => {
+      const { x, y } = data;
+      ctx.fillRect(x, y, 5, 5); // Tamanho do ponto do desenho
+    });
 
-      canvas.addEventListener("mousedown", () => {
-        drawing = true;
-      });
+    socket.on('clear', () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
+    });
 
-      canvas.addEventListener("mousemove", (event) => {
-        if (!drawing) return;
+    canvas.addEventListener('mousedown', () => {
+      drawing = true;
+    });
 
-        const { offsetX, offsetY } = event;
-        ctx.fillRect(offsetX, offsetY, 5, 5); // Tamanho do ponto do desenho
-        socket.emit("draw", { x: offsetX, y: offsetY });
-      });
+    canvas.addEventListener('mousemove', (event) => {
+      if (!drawing) return;
 
-      canvas.addEventListener("mouseup", () => {
-        drawing = false;
-      });
-    </script>
-  </body>
+      const { offsetX, offsetY } = event;
+      ctx.fillRect(offsetX, offsetY, 5, 5); // Tamanho do ponto do desenho
+      socket.emit('draw', { x: offsetX, y: offsetY });
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      drawing = false;
+    });
+
+    // Função para limpar a tela em todos os clientes
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      socket.emit('clear');
+    }
+
+    const clearButton = document.getElementById('clear-button');
+    clearButton.addEventListener('click', clearCanvas);
+  </script>
+</body>
 </html>
